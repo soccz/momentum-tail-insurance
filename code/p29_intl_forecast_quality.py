@@ -8,7 +8,7 @@ P29 — 5라운드 게이트의 확정 major 봉합: 국제·구성 대조 행�
   기존 ΔES5·p의 재현을 게이트로 건다(±0.03 / ±0.02).
 
 데이터: Kenneth French 일별(data/intl/로 레포 이관) · data/processed/wml_2x3_daily·monthly.csv ·
-       추가/data/raw/F-F_Research_Data_Factors_daily.csv. 산출물: p29_intl_qlike.csv (원장 E36).
+       data/intl/F-F_Research_Data_Factors_daily.csv. 산출물: p29_intl_qlike.csv (원장 E36).
 """
 from pathlib import Path
 import numpy as np
@@ -17,7 +17,7 @@ from scipy import stats
 from sklearn.linear_model import RidgeCV, LinearRegression
 from sklearn.ensemble import HistGradientBoostingRegressor
 
-ROOT = Path("/mnt/20t/졸업논문")
+ROOT = Path(__file__).resolve().parents[1]
 DI = ROOT / "data/intl"
 SEED = 42
 sr = lambda r: np.sqrt(12) * np.nanmean(r) / np.nanstd(r)
@@ -57,7 +57,7 @@ def load_25(fp):
     df.index = pd.to_datetime(df.index, format="%Y%m%d")
     return df.replace([-99.99, -999.0], np.nan) / 100.0
 def load_us_mkt():
-    L = open(ROOT / "추가/data/raw/F-F_Research_Data_Factors_daily.csv", encoding="latin1").read().splitlines()
+    L = open(ROOT / "data/intl/F-F_Research_Data_Factors_daily.csv", encoding="latin1").read().splitlines()
     i0 = next(i for i, l in enumerate(L) if l.strip().startswith(",Mkt-RF"))
     rows = []
     for l in L[i0 + 1:]:

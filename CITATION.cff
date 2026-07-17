@@ -4,6 +4,8 @@ title: "Momentum Tail Insurance: What Improves When Risk Forecasts Improve"
 authors:
   - family-names: "soccz"
 type: software
+version: 1.0.0
+date-released: "2026-07-17"
 repository-code: "https://github.com/soccz/momentum-tail-insurance"
 url: "https://soccz.github.io/projects/momentum-journey/"
 keywords:

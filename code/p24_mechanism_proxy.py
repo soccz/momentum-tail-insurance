@@ -16,7 +16,7 @@ P24 (전략 M3) — 메커니즘 대리검정: "RV가 꼬리의 나쁜 조기경
 """
 import numpy as np, pandas as pd
 from scipy import stats
-D="/mnt/20t/tmp/claude-1001/-mnt-20t-----/da2b9872-77c2-46d2-a247-cd601338a0be/scratchpad/intl/"
+D = str(__import__("pathlib").Path(__file__).resolve().parents[1] / "data" / "intl") + "/"  # 공개 데이터 — 레포 상대경로
 ROOT="/mnt/20t/졸업논문/"
 Pm=lambda i:i.to_period("M")
 

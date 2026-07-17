@@ -23,6 +23,6 @@ h = re.sub(r'<link[^>]*fonts[^>]*>', '', out)
 h = re.sub(r'<script[^>]*mathjax[^>]*></script>', '', h)
 h = re.sub(r'<script>\s*MathJax = .*?</script>', '', h, flags=re.S)
 h = h.replace('</style>', '.reveal{opacity:1!important;transform:none!important;}</style>')
-SD = Path("/mnt/20t/tmp/claude-1001/-mnt-20t-----/da2b9872-77c2-46d2-a247-cd601338a0be/scratchpad")
+SD = Path(__file__).resolve().parents[1] / "output" / "web"  # 스크린샷용 임시 출력
 (SD / "deep_shot.html").write_text(h)
 print(f"[shot] {SD}/deep_shot.html")

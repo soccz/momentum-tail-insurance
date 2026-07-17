@@ -5,7 +5,7 @@
 """
 import numpy as np, pandas as pd
 from scipy import stats
-D="/mnt/20t/tmp/claude-1001/-mnt-20t-----/da2b9872-77c2-46d2-a247-cd601338a0be/scratchpad/"
+D = str(__import__("pathlib").Path(__file__).resolve().parents[2] / "data" / "us") + "/"  # 공개 데이터 — 레포 상대경로
 
 def load_deciles(fp, daily):
     lines=open(fp).read().splitlines()

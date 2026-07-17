@@ -7,6 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-1c1917.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-44403c.svg)](requirements.txt)
 [![Experiments](https://img.shields.io/badge/Ledger-E00–E38-b45309.svg)](docs/05_results_ledger.md)
+[![Claims](https://img.shields.io/badge/Claims_map-C1–C48-15803d.svg)](docs/06_claims_map.md)
 [![headline gates](https://img.shields.io/badge/headline_gates-11%2F11_PASS-15803d.svg)](tests/verify_headline_numbers.py)
 
 **[🧭 Research journey (all successes, failures, retractions)](https://soccz.github.io/projects/momentum-journey/)** ·
@@ -40,7 +41,7 @@ using 35 years of Korean stock data (1991–2026) including 1,842 delisted firms
    (Korea–US difference test D=+2.01pp, p=0.001); most of it is captured by long-memory (HAR) and
    market-state structure, with zero incremental tail gain from ML combinations (ENS−HAR = −0.25pp, n.s.).
 
-Across eight international/construction contrasts (US extreme deciles, US small-caps, Japan/Europe/North America/
+Across seven international/construction contrasts (US extreme deciles, US small-caps, Japan/Europe/North America/
 Asia-Pacific 2×3, Korea 2×3 ablation), **forecasts improve everywhere (QLIKE 10–34%) but the tail responds only
 in Korea's extreme-decile construction** — the contrapositive test that became the paper's boundary-condition section.
 
@@ -55,24 +56,31 @@ and a cross-market "weak-factor law" that died in six markets. See the
 The manuscript was closed by a **blind gauntlet**: five reviewer lenses (prose, journal referee, full numeric audit,
 structure, thesis defense) × adversarial verification × seven rounds. Confirmed findings could only be closed by
 **computation**, never by rewording — the final rounds alone added six new tests (p25–p30). Final verdict:
-zero confirmed defects, zero numeric mismatches across ~200 quantitative claims.
+zero confirmed defects, zero numeric mismatches across every quantitative claim in the manuscript (full audit against the canonical CSVs).
 
 ## Quick start
+
+In order of "works immediately after cloning":
 
 ```bash
 pip install -r requirements.txt
 
-# Headline gate: 11 core claims must reproduce from the canonical CSVs (re-runnable by anyone in seconds)
+# 1) Headline gate — 11 core claims must reproduce from the canonical CSVs (runs as-is)
 python tests/verify_headline_numbers.py
 
-# Full analysis pipeline reproduces from this repository alone
-# (factor-level derived series are included; only security-level raw data is excluded)
-python code/p2_forecast_race.py          # 12-predictor forecast race
-python code/p30_kr_us_difference.py      # Korea–US tail-increment difference test (live FF download)
+# 2) Data integrity — SHA256 + live FRED cross-check (runs as-is; FnGuide files are skipped)
+python reproduce/step0_check_data.py
+
+# 3) US & international pipelines — KF raw data included, repo-relative paths (verified by execution)
+python code/us/p18_us_wml.py                 # BS15 US replication gate
+python code/p29_intl_forecast_quality.py     # exact reproduction gate for 6 international series
+python code/p30_kr_us_difference.py          # Korea–US difference test (live FF download)
+
+# 4) Korean main pipeline (p2–p27) — edit the ROOT line at the top of each script first
 ```
 
-Every `p*.py` uses seed=42 and prints its own verification gate on completion.
-Paths are hard-coded to the original project root — edit the `ROOT` line to rerun.
+Scripts with stochastic components fix seed=42 and print their own verification gates on completion.
+US/international scripts use repo-relative paths and run as-is; the Korean main pipeline needs a one-line ROOT edit.
 
 ## Data policy
 
@@ -97,4 +105,4 @@ Paths are hard-coded to the original project root — edit the `ROOT` line to re
 ```
 
 Original paper: Barroso, P., and P. Santa-Clara (2015), *Momentum has its moments*, JFE 116(1), 111–120.
-Prior Korean BS15 replication: Son, Yoon, and Yoon (2017), Journal of Knowledge Studies 15(1).
+Prior Korean BS15 replication: 손경우·윤병욱·윤보현 (2017), 금융지식연구 [Financial Knowledge Studies, in Korean] 15(1).

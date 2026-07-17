@@ -7,7 +7,7 @@ import numpy as np, pandas as pd
 from scipy import stats
 from sklearn.linear_model import RidgeCV, LinearRegression
 from sklearn.ensemble import HistGradientBoostingRegressor
-D="/mnt/20t/tmp/claude-1001/-mnt-20t-----/da2b9872-77c2-46d2-a247-cd601338a0be/scratchpad/intl/"
+D = str(__import__("pathlib").Path(__file__).resolve().parents[2] / "data" / "intl") + "/"  # 공개 데이터 — 레포 상대경로
 SEED=42; rng=np.random.default_rng(SEED)
 
 def _rows(fp, ncol):
