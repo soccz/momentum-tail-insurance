@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>모멘텀에도 순간이 있다 — Barroso & Santa-Clara (2015) 해체분석 · 한국 재현</title>
+<meta name="description" content="모멘텀 크래시는 예측된다 — Momentum has its moments (Barroso & Santa-Clara, JFE 2015)를 0부터 배경지식·섹션별 정밀독해로 해체하고, 한국 주식 35년(1990–2026) 데이터로 재현. 실데이터 인터랙티브 차트 8종·위험관리 모멘텀·실현변동성 스케일링." />
+<link rel="canonical" href="https://soccz.github.io/projects/momentum-barroso/" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="soccz" />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:title" content="모멘텀에도 순간이 있다 — 폭락은 예측된다 (Barroso 2015 해체분석·한국 재현)" />
+<meta property="og:description" content="논문을 0부터 한 줄 한 줄 해체 + 한국 주식 35년 재현 + 실데이터 인터랙티브 8종. 위험관리로 모멘텀 샤프 0.53→0.97(US), 한국에서도 개선." />
+<meta property="og:url" content="https://soccz.github.io/projects/momentum-barroso/" />
+<meta property="og:image" content="https://soccz.github.io/projects/momentum-barroso/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="모멘텀에도 순간이 있다 — 폭락은 예측된다" />
+<meta name="twitter:description" content="Barroso & Santa-Clara (JFE 2015) 해체분석 · 한국 주식 35년 재현 · 인터랙티브 8종" />
+<meta name="twitter:image" content="https://soccz.github.io/projects/momentum-barroso/og.png" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%93%89%3C/text%3E%3C/svg%3E" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"TechArticle",
+ "headline":"모멘텀에도 순간이 있다 — Barroso & Santa-Clara (2015) 해체분석·한국 재현",
+ "inLanguage":"ko","url":"https://soccz.github.io/projects/momentum-barroso/",
+ "image":"https://soccz.github.io/projects/momentum-barroso/og.png",
+ "about":{"@type":"ScholarlyArticle","name":"Momentum has its moments",
+   "author":["Pedro Barroso","Pedro Santa-Clara"],
+   "isPartOf":"Journal of Financial Economics 116 (2015) 111–120",
+   "sameAs":"https://doi.org/10.1016/j.jfineco.2014.11.010"},
+ "datePublished":"2026-07-06"}
+</script>
+<meta name="theme-color" content="#faf7f2" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Nanum+Myeongjo:wght@400;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+  MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+              chtml: { scale: 1.0 }, options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] } };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root{
+  --bg:#faf7f2; --bg-warm:#f5f0e8; --bg-dot:rgba(196,114,78,0.06);
+  --surface:#ffffff; --surface-2:#fbf8f3;
+  --border:#e5ddd3; --border-light:#eee7de; --border-hover:#d4c8b8;
+  --text:#1a1410; --text-secondary:#5c4f42; --text-muted:#96887a; --text-light:#b5a898;
+  --accent:#c4724e; --accent-light:#fdf0ea; --accent-hover:#b06240; --accent-soft:#e8a98a;
+  --blue:#2f6d8f; --blue-soft:#8fb8cc; --gold:#c9a24a; --green:#5f8a5f; --red:#b8503f;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter','Noto Sans KR',system-ui,sans-serif;
+  --font-serif:'Nanum Myeongjo','Noto Serif KR',serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --maxw:960px;
+}
+:root[data-theme="dark"]{
+  --bg:#161311; --bg-warm:#1e1a17; --bg-dot:rgba(228,160,120,0.05);
+  --surface:#211d19; --surface-2:#1b1815;
+  --border:#352f28; --border-light:#2a251f; --border-hover:#4a4136;
+  --text:#f2ece3; --text-secondary:#c4b8a8; --text-muted:#9a8c7c; --text-light:#6f6355;
+  --accent:#e0895f; --accent-light:#2c211a; --accent-hover:#eaa079; --accent-soft:#7a5540;
+  --blue:#6faed0; --blue-soft:#3e6579; --gold:#d8b96a; --green:#7faf7f; --red:#e07560;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.7;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
+  background-image:radial-gradient(var(--bg-dot) 1px,transparent 1px);background-size:28px 28px;background-attachment:fixed;
+  transition:background .3s,color .3s;}
+a{color:var(--accent);text-decoration:none;transition:color .15s;}
+a:hover{color:var(--accent-hover);}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:100;transition:width .1s;}
+
+.site-header{position:sticky;top:0;z-index:60;height:56px;display:flex;align-items:center;padding:0 26px;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border-light);}
+.brand{font-family:var(--font-display);font-weight:700;font-size:1.0rem;color:var(--text);}
+.brand .dot{color:var(--accent);}
+.crumbs{margin-left:16px;font-size:.78rem;color:var(--text-muted);}
+.hdr-actions{margin-left:auto;display:flex;gap:10px;align-items:center;}
+.hdr-actions button,.hdr-actions a{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);
+  color:var(--text-secondary);font-size:.8rem;font-family:var(--font-display);cursor:pointer;}
+.hdr-actions button:hover,.hdr-actions a:hover{border-color:var(--accent);color:var(--accent);}
+
+/* section nav (TOC) */
+.subnav{position:sticky;top:56px;z-index:55;background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border-light);overflow-x:auto;white-space:nowrap;
+  -ms-overflow-style:none;scrollbar-width:none;}
+.subnav::-webkit-scrollbar{display:none;}
+.subnav .inner{max-width:var(--maxw);margin:0 auto;padding:8px 24px;display:flex;gap:4px;}
+.subnav a{font-family:var(--font-display);font-size:.76rem;color:var(--text-muted);padding:5px 11px;border-radius:7px;flex:0 0 auto;}
+.subnav a:hover{background:var(--surface);color:var(--accent);}
+.subnav a.active{color:var(--accent);background:var(--accent-light);font-weight:600;}
+
+.hero{max-width:var(--maxw);margin:0 auto;padding:76px 32px 36px;text-align:center;}
+.eyebrow{display:inline-block;font-family:var(--font-display);font-size:.7rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.18em;color:var(--accent);background:var(--accent-light);padding:6px 14px;border-radius:999px;margin-bottom:30px;}
+.hero h1{font-family:var(--font-serif);font-weight:800;font-size:clamp(2.2rem,5.4vw,4rem);line-height:1.16;letter-spacing:-.02em;margin-bottom:22px;word-break:keep-all;}
+.hero h1 .hl{color:var(--accent);}
+.hero .subtitle{max-width:720px;margin:0 auto;color:var(--text-secondary);font-size:1.03rem;line-height:1.9;word-break:keep-all;}
+.hero .subtitle .accent{color:var(--accent);font-weight:600;}
+.meta-strip{max-width:760px;margin:30px auto 0;display:flex;flex-wrap:wrap;justify-content:center;gap:9px;font-size:.78rem;}
+.meta-strip .chip{font-family:var(--font-display);padding:5px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--text-secondary);}
+.meta-strip .chip.id{background:var(--text);color:var(--bg);border-color:var(--text);font-family:var(--font-mono);font-size:.72rem;}
+
+.stats{max-width:var(--maxw);margin:56px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px 12px;}
+.stat{text-align:center;padding:18px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--border-light);overflow:hidden;}
+.stat .num{font-family:var(--font-serif);font-weight:800;font-size:clamp(1.3rem,2.5vw,1.72rem);letter-spacing:-.03em;line-height:1.05;white-space:nowrap;}
+.stat .num .arrow{color:var(--accent);font-size:.72em;padding:0 1px;}
+.stat .label{margin-top:10px;font-family:var(--font-display);font-size:.72rem;color:var(--text-muted);letter-spacing:.03em;line-height:1.35;}
+
+section.block{max-width:var(--maxw);margin:88px auto 0;padding:0 32px;scroll-margin-top:110px;}
+.section-title{font-family:var(--font-display);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-title::before{content:'';width:26px;height:1.5px;background:var(--accent);opacity:.6;}
+section.block h2{font-family:var(--font-serif);font-weight:700;font-size:clamp(1.6rem,3.2vw,2.1rem);line-height:1.3;margin-bottom:18px;word-break:keep-all;}
+section.block > p{color:var(--text-secondary);font-size:1.0rem;line-height:1.9;max-width:760px;word-break:keep-all;margin-bottom:14px;}
+.lead{font-size:1.08rem !important;color:var(--text) !important;}
+blockquote{max-width:760px;margin:22px 0;padding:16px 22px;background:var(--accent-light);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;color:var(--text);line-height:1.75;}
+blockquote.verdict{font-family:var(--font-serif);font-size:1.05rem;font-style:italic;}
+.hlbox{max-width:760px;margin:20px 0;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-radius:12px;}
+.hlbox .k{font-family:var(--font-display);font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);margin-bottom:8px;}
+
+.chain{max-width:820px;margin:8px auto 0;display:flex;flex-direction:column;gap:0;}
+.chain .step{display:flex;gap:20px;padding:18px 0;border-bottom:1px solid var(--border-light);}
+.chain .step:last-child{border-bottom:none;}
+.chain .step .n{flex:0 0 44px;height:44px;border-radius:12px;background:var(--accent-light);color:var(--accent);font-family:var(--font-serif);font-weight:800;font-size:1.3rem;display:flex;align-items:center;justify-content:center;}
+.chain .step .body h4{font-family:var(--font-display);font-size:1.0rem;font-weight:600;margin-bottom:4px;}
+.chain .step .body p{color:var(--text-secondary);font-size:.92rem;line-height:1.7;margin:0;}
+.chain .step .body .tag{font-family:var(--font-mono);font-size:.72rem;color:var(--text-light);}
+
+/* glossary */
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:8px;}
+.gcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.gcard .term{font-family:var(--font-display);font-weight:600;font-size:.95rem;color:var(--accent);margin-bottom:6px;}
+.gcard .def{font-size:.86rem;color:var(--text-secondary);line-height:1.65;}
+.gcard .def b{color:var(--text);}
+
+/* abstract dissection */
+.abs{max-width:800px;margin-top:8px;display:flex;flex-direction:column;gap:10px;}
+.abs .row{background:var(--surface);border:1px solid var(--border-light);border-radius:12px;padding:16px 18px;}
+.abs .row .en{font-family:var(--font-serif);font-style:italic;color:var(--text);font-size:.98rem;line-height:1.6;margin-bottom:8px;}
+.abs .row .an{font-size:.9rem;color:var(--text-secondary);line-height:1.7;}
+.abs .row .an b{color:var(--accent);}
+
+/* viz */
+.viz-frame{margin-top:18px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:0 4px 22px rgba(26,20,16,.04);}
+.viz-label{font-family:var(--font-display);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.viz-label::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.viz-canvas-wrap{position:relative;width:100%;}
+canvas.chart{width:100%;height:360px;display:block;}
+canvas.chart.short{height:300px;}
+.viz-controls{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;font-size:.85rem;}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;}
+.seg button{padding:7px 13px;border:none;background:var(--surface);color:var(--text-secondary);font-family:var(--font-display);font-size:.8rem;cursor:pointer;border-right:1px solid var(--border);transition:all .15s;}
+.seg button:last-child{border-right:none;}
+.seg button.on{background:var(--accent);color:#fff;}
+.viz-note{margin-top:12px;font-size:.85rem;color:var(--text-muted);line-height:1.65;max-width:760px;}
+.viz-note b{color:var(--text-secondary);}
+.tooltip{position:absolute;pointer-events:none;background:var(--text);color:var(--bg);font-family:var(--font-mono);font-size:.72rem;padding:6px 9px;border-radius:7px;opacity:0;transform:translate(-50%,-120%);white-space:nowrap;z-index:5;transition:opacity .1s;}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;color:var(--text-secondary);font-family:var(--font-display);margin-bottom:6px;}
+.legend .li{display:inline-flex;align-items:center;gap:7px;}
+.legend .sw{width:16px;height:3px;border-radius:2px;}
+
+/* widget (scaling) */
+.widget{display:grid;grid-template-columns:1fr;gap:16px;}
+.slider-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.slider-row label{font-family:var(--font-display);font-size:.82rem;color:var(--text-secondary);}
+.slider-row input[type=range]{flex:1;min-width:180px;accent-color:var(--accent);}
+.slider-row .val{font-family:var(--font-mono);font-weight:600;color:var(--accent);min-width:52px;text-align:right;}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px;}
+.readout .r{background:var(--surface-2);border:1px solid var(--border-light);border-radius:10px;padding:12px 10px;text-align:center;}
+.readout .r .rv{font-family:var(--font-serif);font-weight:800;font-size:1.35rem;line-height:1;}
+.readout .r .rl{font-family:var(--font-display);font-size:.68rem;color:var(--text-muted);margin-top:6px;letter-spacing:.03em;}
+
+/* deconstruction */
+.decon{display:flex;flex-direction:column;gap:14px;margin-top:8px;}
+details.sec{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .18s;}
+details.sec[open]{border-color:var(--border-hover);}
+details.sec summary{list-style:none;cursor:pointer;padding:20px 24px;display:flex;align-items:center;gap:16px;}
+details.sec summary::-webkit-details-marker{display:none;}
+details.sec summary .sn{font-family:var(--font-mono);font-size:.78rem;color:var(--accent);font-weight:600;flex:0 0 auto;}
+details.sec summary .st{font-family:var(--font-serif);font-weight:700;font-size:1.12rem;flex:1;word-break:keep-all;}
+details.sec summary .chev{color:var(--text-light);transition:transform .2s;}
+details.sec[open] summary .chev{transform:rotate(90deg);}
+details.sec .sbody{padding:0 24px 22px;border-top:1px solid var(--border-light);}
+details.sec .sbody > *{margin-top:14px;}
+details.sec .sbody p{color:var(--text-secondary);line-height:1.85;font-size:.96rem;word-break:keep-all;}
+details.sec .sbody p strong,details.sec .sbody li strong{color:var(--text);}
+details.sec .sbody ul{padding-left:20px;color:var(--text-secondary);line-height:1.8;font-size:.95rem;}
+details.sec .sbody li{margin-top:6px;}
+.eq{background:var(--surface-2);border:1px solid var(--border-light);border-radius:10px;padding:14px 18px;overflow-x:auto;}
+.eq .cap{font-family:var(--font-mono);font-size:.72rem;color:var(--text-muted);margin-bottom:4px;}
+.why{background:var(--accent-light);border-radius:10px;padding:14px 18px;font-size:.93rem;line-height:1.8;color:var(--text);}
+.why .k{font-family:var(--font-display);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:600;margin-right:6px;}
+.deepsec{margin-top:30px;padding-top:26px;border-top:1px solid var(--border-light);scroll-margin-top:110px;}
+.deepsec:first-child{border-top:none;margin-top:14px;padding-top:0;}
+details.deepsec > summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:12px;margin-bottom:2px;flex-wrap:wrap;}
+details.deepsec > summary::-webkit-details-marker{display:none;}
+.deepsec .dhead .dn{font-family:var(--font-mono);font-size:.82rem;color:var(--accent);font-weight:600;}
+.deepsec .dhead .dt{font-family:var(--font-serif);font-weight:700;font-size:1.35rem;line-height:1.3;word-break:keep-all;}
+.deepsec .dhead .chev{margin-left:auto;color:var(--text-light);align-self:center;transition:transform .2s;}
+details.deepsec[open] > summary .chev{transform:rotate(90deg);}
+details.deepsec > summary:hover .dt{color:var(--accent);}
+.deepsec p{color:var(--text-secondary);line-height:1.92;font-size:.97rem;margin-top:13px;word-break:keep-all;}
+.deepsec p b,.deepsec li b,.deepsec .key b{color:var(--text);}
+.deepsec h4.subh{font-family:var(--font-display);font-size:1.02rem;color:var(--text);margin-top:22px;font-weight:600;}
+.deepsec ul{padding-left:20px;color:var(--text-secondary);line-height:1.85;font-size:.95rem;margin-top:12px;}
+.deepsec li{margin-top:6px;}
+.deepsec .eq,.deepsec .why,.deepsec blockquote{margin-top:15px;}
+.deepsec .key{background:var(--surface-2);border:1px solid var(--border-light);border-left:3px solid var(--accent);border-radius:8px;padding:13px 17px;margin-top:15px;font-size:.92rem;line-height:1.75;color:var(--text-secondary);}
+.deepsec code{font-family:var(--font-mono);font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--accent);}
+/* beginner: gateway box atop each deep section */
+.gateway{background:var(--accent-light);border-radius:12px;padding:15px 20px;margin-top:16px;margin-bottom:4px;}
+.gateway .gk{font-family:var(--font-display);font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.gateway p{margin:0;color:var(--text);font-size:.98rem;line-height:1.85;word-break:keep-all;}
+.gateway p b{color:var(--accent);}
+/* beginner: concept onboarding */
+.cluster{margin-top:26px;}
+.cluster-title{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:9px;}
+.cluster-grid{display:flex;flex-direction:column;gap:10px;}
+details.concept{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .18s;}
+details.concept[open]{border-color:var(--border-hover);}
+details.concept > summary{list-style:none;cursor:pointer;padding:15px 18px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+details.concept > summary::-webkit-details-marker{display:none;}
+details.concept .cemoji{font-size:1.1rem;align-self:center;}
+details.concept .cterm{font-family:var(--font-display);font-weight:600;font-size:1rem;color:var(--text);}
+details.concept .cana{color:var(--text-muted);font-size:.9rem;flex:1;min-width:180px;word-break:keep-all;}
+details.concept .cchev{color:var(--text-light);align-self:center;transition:transform .2s;}
+details.concept[open] > summary .cchev{transform:rotate(90deg);}
+details.concept .cbody{padding:0 18px 16px;border-top:1px solid var(--border-light);}
+details.concept .crow{margin-top:12px;font-size:.92rem;line-height:1.75;color:var(--text-secondary);}
+details.concept .crow .cl{display:inline-block;font-family:var(--font-display);font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:var(--accent-light);padding:2px 8px;border-radius:6px;margin-right:8px;vertical-align:middle;}
+details.concept .crow.ex{background:var(--surface-2);border-radius:8px;padding:10px 12px;font-family:var(--font-mono);font-size:.84rem;color:var(--text);}
+details.concept .crow b{color:var(--text);}
+details.concept code{font-family:var(--font-mono);font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+.tbl-wrap{overflow-x:auto;margin-top:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
+table.data{border-collapse:collapse;width:100%;font-size:.86rem;min-width:560px;}
+table.data th,table.data td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--border-light);}
+table.data th:first-child,table.data td:first-child{text-align:left;font-family:var(--font-display);font-weight:600;}
+table.data thead th{font-family:var(--font-display);font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);background:var(--surface-2);position:sticky;top:0;}
+table.data tbody td{font-family:var(--font-mono);}
+table.data tr.hl td{background:var(--accent-light);}
+table.data .grp td{font-family:var(--font-display);font-size:.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;background:var(--surface-2);}
+.tbl-cap{font-size:.82rem;color:var(--text-muted);margin-top:8px;line-height:1.6;}
+
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+.cmp .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.cmp .card h4{font-family:var(--font-display);font-size:.9rem;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.cmp .card .flag{font-size:1.1rem;}
+.cmp .card .big{font-family:var(--font-serif);font-weight:800;font-size:2rem;line-height:1.1;margin:6px 0;}
+.cmp .card p{font-size:.86rem;color:var(--text-muted);line-height:1.6;}
+@media(max-width:640px){.cmp{grid-template-columns:1fr;}}
+
+.crit{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:8px;}
+.crit .c{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:10px;padding:15px 17px;}
+.crit .c h4{font-family:var(--font-display);font-size:.9rem;margin-bottom:6px;}
+.crit .c p{font-size:.85rem;color:var(--text-secondary);line-height:1.65;}
+
+.steps{counter-reset:st;margin-top:8px;display:flex;flex-direction:column;gap:10px;}
+.steps .s{background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:14px 18px 14px 52px;position:relative;font-size:.92rem;color:var(--text-secondary);line-height:1.7;}
+.steps .s::before{counter-increment:st;content:counter(st);position:absolute;left:16px;top:14px;width:24px;height:24px;border-radius:7px;background:var(--accent-light);color:var(--accent);font-family:var(--font-mono);font-weight:600;font-size:.8rem;display:flex;align-items:center;justify-content:center;}
+.steps .s b{color:var(--text);}
+.steps .s code{font-family:var(--font-mono);font-size:.85em;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--accent);}
+
+.site-footer{max-width:var(--maxw);margin:100px auto 0;padding:38px 32px 60px;text-align:center;font-size:.83rem;color:var(--text-muted);border-top:1px solid var(--border-light);}
+.site-footer a{color:var(--text-secondary);}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s;}
+.reveal.in{opacity:1;transform:none;}
+#backtop{position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text-secondary);font-size:1.1rem;cursor:pointer;opacity:0;pointer-events:none;
+  transition:opacity .25s;box-shadow:0 4px 16px rgba(26,20,16,.10);z-index:70;}
+#backtop.show{opacity:1;pointer-events:auto;}
+#backtop:hover{border-color:var(--accent);color:var(--accent);}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border-hover);}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<header class="site-header">
+  <div class="brand"><a href="#top">soccz<span class="dot">·</span></a></div>
+  <div class="crumbs">/ papers / <strong style="color:var(--accent)">해체분석</strong></div>
+  <div class="hdr-actions">
+    <button id="themeBtn" title="테마 전환">◐ 테마</button>
+    <a href="https://doi.org/10.1016/j.jfineco.2014.11.010" target="_blank" rel="noopener">원문 DOI ↗</a>
+  </div>
+</header>
+<nav class="subnav"><div class="inner" id="subnav"></div></nav>
+
+<main id="top">
+
+<section class="hero">
+  <span class="eyebrow">Paper 해체분석 · 모멘텀 × 위험관리 × 한국 재현</span>
+  <h1>모멘텀에도 <span class="hl">순간</span>이 있다 —<br>폭락은 우연이 아니라 <span class="hl">예측된다</span>.</h1>
+  <p class="subtitle">
+    <span class="accent">Barroso &amp; Santa-Clara (2015, <i>Journal of Financial Economics</i>)</span> 는
+    모든 팩터 중 샤프비율이 가장 높은 모멘텀이 드물게 <span class="accent">−79%</span>짜리 파국을 겪지만,
+    그 위험이 <span class="accent">시간에 따라 크게 변하면서도 매우 예측 가능</span>하다는 걸 보인다.
+    직전 6개월 실현변동성으로 포지션을 역스케일하면 폭락이 사라지고 샤프비율이 <span class="accent">0.53 → 0.97</span> 로 거의 두 배가 된다.
+    이 페이지는 논문을 초록부터 부록까지 한 줄 한 줄 해체하고, <span class="accent">한국 주식 35년(1990–2026)</span> 데이터로 직접 재현하며, 재현 결과를 인터랙티브 차트로 만진다.
+  </p>
+  <div class="meta-strip">
+    <span class="chip">Pedro Barroso · Pedro Santa-Clara</span>
+    <span class="chip">JFE 116 (2015) 111–120</span>
+    <span class="chip">G11 · G12 · G17</span>
+    <span class="chip id">time-varying risk</span>
+  </div>
+</section>
+
+<section class="stats" id="stats"></section>
+
+<section class="block" id="chain-sec">
+  <div class="section-title">핵심 논증 사슬</div>
+  <h2>논문 전체를 한 줄로 꿰는 7단계.</h2>
+  <p>각 단계가 다음 단계의 전제다. 이 사슬만 이해하면 그림 6개·표 6개·수식 7개가 전부 제자리를 찾는다.</p>
+  <div class="chain" id="chain"></div>
+  <blockquote class="verdict">"폭락은 예측 불가능한 벼락이 아니라, 변동성이 이미 높아진 국면에서 터진다. 변동성은 끈질기게 이어지므로 어제의 변동성으로 오늘의 위험을 알 수 있고, 위험이 클 때 포지션을 줄이면 폭락의 대부분을 피한다."</blockquote>
+</section>
+
+<section class="block" id="concept-sec">
+  <div class="section-title">0부터 배경지식 · 아무것도 몰라도 OK</div>
+  <h2>먼저, 이것만 알면 다 읽힌다.</h2>
+  <p>주식·통계·계량을 전혀 몰라도 괜찮다. 각 개념을 <b>일상 비유 → 쉬운 설명 → 정확한 뜻 → 숫자 예시 → 이 논문에서의 쓰임</b> 순서로 풀었다. 카드를 펼쳐 필요한 것만 골라 읽어도 되고, 처음이라면 순서대로 훑어도 된다.</p>
+  <div id="concepts">__CONCEPTS__</div>
+</section>
+
+<section class="block" id="abstract-sec">
+  <div class="section-title">Abstract 문장별 해체</div>
+  <h2>초록 다섯 문장, 다섯 개의 주장.</h2>
+  <div class="abs" id="abs"></div>
+</section>
+
+<section class="block" id="crash-sec">
+  <div class="section-title">Interactive · Fig 1 재현</div>
+  <h2>모멘텀 크래시 탐색기.</h2>
+  <p>시장이 큰 하락 뒤 <b>반등</b>할 때 모멘텀이 붕괴한다. 시대와 시장을 바꿔 보라 — 미국의 1930·2000년대, 그리고 한국의 IMF·닷컴·글로벌 금융위기·코로나. 누적 $1 투자 곡선이며, 곰장 반등 구간에서 모멘텀(빨강)이 시장(파랑)을 아래로 이탈하는 순간이 곧 폭락이다.</p>
+  <div class="viz-frame reveal">
+    <div class="viz-label">interactive · cumulative return</div>
+    <div class="legend" id="lg1"></div>
+    <div class="viz-canvas-wrap"><canvas class="chart" id="c1"></canvas><div class="tooltip" id="tt1"></div></div>
+    <div class="viz-controls"><div class="seg" id="c1period"></div></div>
+    <div class="viz-note" id="note1"></div>
+  </div>
+</section>
+
+<section class="block" id="decon-sec">
+  <div class="section-title">한 줄 한 줄 해체 · §1–부록</div>
+  <h2>섹션별 정밀 독해 + 수식.</h2>
+  <p>초록·서론부터 부록까지, 논문의 실제 문단 흐름을 따라가며 각 주장·수식·수치를 풀어 쓴다. 이 글만 읽고도 해당 절을 완전히 이해할 수 있게 하는 게 목표다.</p>
+  <div id="decon">__DEEP_SECTIONS__</div>
+</section>
+
+<section class="block" id="vol-sec">
+  <div class="section-title">Interactive · Fig 2 + Table 2 재현</div>
+  <h2>모멘텀의 위험은 요동치고, 또 예측된다.</h2>
+  <p>왼쪽 기둥: 한국 모멘텀의 월별 연율 실현변동성(1991–2026)은 위기마다 치솟는다(<b>highly variable</b>). 오른쪽 기둥: 이번 달 위험이 다음 달 위험을 예측한다(<b>persistent</b>). 아래 산점도의 우상향 기울기가 AR(1) 지속성 ρ다 — 이 두 기둥의 결합 위에 전략이 선다.</p>
+  <div class="viz-frame reveal">
+    <div class="viz-label">interactive · annualized realized volatility (%)</div>
+    <div class="viz-canvas-wrap"><canvas class="chart" id="c2"></canvas><div class="tooltip" id="tt2"></div></div>
+    <div class="viz-note" id="note2"></div>
+  </div>
+  <div class="viz-frame reveal" style="margin-top:14px;">
+    <div class="viz-label">interactive · AR(1) persistence — RVₜ vs RVₜ₋₁</div>
+    <div class="viz-canvas-wrap"><canvas class="chart short" id="c2b"></canvas><div class="tooltip" id="tt2b"></div></div>
+    <div class="viz-note" id="note2b"></div>
+  </div>
+  <div class="tbl-wrap" id="t2wrap"></div>
+  <p class="tbl-cap">Table 2 (원논문, 1927:03–2011:12) · AR(1)의 <b>OOS R²</b>는 예측이 "과거 평균"보다 얼마나 나은지를 잰다. 모멘텀 위험은 가장 변동적(σ_σ 최대)이면서 동시에 가장 예측 가능(OOS 57.82% 최대).</p>
+</section>
+
+<section class="block" id="quint-sec">
+  <div class="section-title">Interactive · Fig 3 재현</div>
+  <h2>모멘텀은 위험이 클 때 <span style="color:var(--accent)">보상이 사라진다</span>.</h2>
+  <p>각 월을 직전 6개월 실현변동성으로 5분위(Q1=조용 … Q5=격변)로 나눈 뒤, 이후 12개월의 변동성·수익·샤프를 평균했다. <b>모멘텀(WML)</b>은 고변동성 국면(Q4·Q5) 뒤 샤프가 <b>음(−)으로 전환</b>한다 — 음의 위험-수익 관계. 반면 <b>시장(RMRF)</b>은 반대로 위험이 클수록 보상이 커진다. 이 비대칭이 "위험이 클 때 모멘텀을 줄여라"의 실증적 근거다.</p>
+  <div class="viz-frame reveal">
+    <div class="viz-label">interactive · next-12-month outcome by prior-vol quintile</div>
+    <div class="legend" id="lg3"></div>
+    <div class="viz-canvas-wrap"><canvas class="chart" id="c3"></canvas><div class="tooltip" id="tt3"></div></div>
+    <div class="viz-controls"><div class="seg" id="c3metric"></div></div>
+    <div class="viz-note" id="note3"></div>
+  </div>
+</section>
+
+<section class="block" id="rm-sec">
+  <div class="section-title">Interactive · Fig 6 + Table 3 재현</div>
+  <h2>위험관리(WML*)는 격변기에 빛난다.</h2>
+  <p>원본 모멘텀(WML)과, 6개월 실현변동성으로 연 12% 목표에 맞춰 스케일한 위험관리 버전(WML*)의 누적수익. 위기 구간에서 WML*가 폭락을 피하며 자본을 보존한다. 아래 표는 선택한 표본의 실제 재현 통계.</p>
+  <div class="viz-frame reveal">
+    <div class="viz-label">interactive · WML vs WML* cumulative</div>
+    <div class="legend" id="lg4"></div>
+    <div class="viz-canvas-wrap"><canvas class="chart" id="c4"></canvas><div class="tooltip" id="tt4"></div></div>
+    <div class="viz-controls"><div class="seg" id="c4sample"></div><div class="seg" id="c4period"></div></div>
+    <div class="tbl-wrap" id="t3wrap"></div>
+    <div class="viz-note" id="note4"></div>
+  </div>
+</section>
+
+<section class="block" id="widget-sec">
+  <div class="section-title">Interactive · 스케일링 메커니즘</div>
+  <h2>목표 변동성을 직접 돌려 보라.</h2>
+  <p>위험관리의 핵심은 단 하나의 손잡이 — 목표 변동성 σ_target. 슬라이더를 움직이면 매월 레버리지 <code>σ_target/σˆₜ</code> 가 바뀌고, 그에 따라 WML*의 연변동성·샤프·최악낙폭이 실시간으로 재계산된다. <b>샤프비율은 σ_target에 거의 불변</b>(상수 곱이라) — 목표는 "위험 수준"만 정할 뿐이라는 걸 눈으로 확인하라.</p>
+  <div class="viz-frame reveal">
+    <div class="viz-label">interactive · leverage σ_target / σˆₜ over time</div>
+    <div class="widget">
+      <div class="slider-row">
+        <label>목표 변동성 σ_target</label>
+        <input type="range" id="tgt" min="4" max="30" step="1" value="12">
+        <span class="val" id="tgtVal">12%</span>
+      </div>
+      <div class="readout" id="wro"></div>
+      <div class="viz-canvas-wrap"><canvas class="chart short" id="c5"></canvas><div class="tooltip" id="tt5"></div></div>
+    </div>
+    <div class="viz-note">레버리지 = 롱·숏 다리에 넣는 금액(1.0=완전투자). 위기(σˆ↑)엔 자동으로 발을 뺀다. 회색 점선=완전투자(1.0). <b>main 1990+ 표본.</b></div>
+  </div>
+</section>
+
+<section class="block" id="anatomy-sec">
+  <div class="section-title">Interactive · §5 + Table 4 재현</div>
+  <h2>왜 베타 헤지는 실패하나 — 위험의 해부.</h2>
+  <p>모멘텀 위험을 시장성분(β²·RV_market)과 고유성분으로 쪼개면, 시장성분은 아주 작은 조각일 뿐이다. 아래는 한국 모멘텀 분산 중 <b>시장성분 비중</b>의 시계열 — 평균 <span id="decMean" style="color:var(--accent);font-weight:600"></span>. 미국(23%)보다도 낮아, 한국 모멘텀은 <b>거의 전부 고유위험</b>이다. 베타 헤지가 겨냥하는 건 이 작고(≈10%) 예측도 안 되는 조각뿐이라 실패한다.</p>
+  <div class="viz-frame reveal">
+    <div class="viz-label">interactive · market-component share of momentum variance</div>
+    <div class="viz-canvas-wrap"><canvas class="chart short" id="c6"></canvas><div class="tooltip" id="tt6"></div></div>
+    <div class="viz-note" id="note6"></div>
+  </div>
+  <div class="tbl-wrap" id="t4wrap"></div>
+  <p class="tbl-cap">Table 4 (원논문) · β²는 거의 예측 불가(OOS 5.33%). <b>고유성분(σ²ₑ)의 OOS 47.06%</b>가 시장성분(20.87%)보다 훨씬 높다 — 그래서 실현분산 스케일링(큰·예측되는 부분)은 되고 베타 헤지(작은·비예측 부분)는 안 된다.</p>
+</section>
+
+<section class="block" id="intl-sec">
+  <div class="section-title">Interactive · Table 5 재현 · 한국을 5번째 나라로</div>
+  <h2>메커니즘은 국경을 가리지 않는다.</h2>
+  <p>Barroso는 프랑스·독일·일본·영국 <b>네 나라 모두</b>에서 위험관리가 샤프를 올림을 보였다. 여기에 <b>한국</b>을 다섯 번째 나라로 얹는다. 모멘텀이 원래 실패하는 일본(0.08→0.24)과 한국(약한 모멘텀)의 결이 같다 — 약한 시장에서도 위험관리는 위험조정성과를 끌어올린다.</p>
+  <div class="viz-frame reveal">
+    <div class="viz-label">interactive · Sharpe ratio — WML vs WML* by country</div>
+    <div class="legend" id="lg7"></div>
+    <div class="viz-canvas-wrap"><canvas class="chart" id="c7"></canvas><div class="tooltip" id="tt7"></div></div>
+    <div class="viz-note"><span style="color:var(--red)">빨강=원본 WML</span>, <span style="color:var(--gold)">금색=위험관리 WML*</span>. 모든 나라에서 금색 막대가 더 높다 — 위험관리의 보편성. 한국은 재현 결과(clean 2005+).</div>
+  </div>
+</section>
+
+<section class="block" id="table1-sec">
+  <div class="section-title">Table 1 재현 · US vs 한국</div>
+  <h2>미국에선 모멘텀이 왕, 한국에선 시장에도 못 미친다.</h2>
+  <p>Barroso의 Table 1은 모멘텀이 <b>가장 높은 샤프</b>(0.53)와 <b>가장 나쁜 왜도</b>(−2.47)를 동시에 가짐을 보인다. 한국 재현(원천 주가로 직접 구성)에서는 딴판 — WML 샤프(<b>0.16</b>)가 시장(<b>0.36</b>)의 절반에도 못 미쳐 더 이상 '최고 팩터'가 아니고(미국은 WML이 모든 팩터를 이긴다), 최근 표본에선 크래시 왜도도 거의 없다(대형주 가치가중의 효과). 이것이 "한국 모멘텀은 약하다"(Chui-Titman-Wei 2010)의 정량적 확인이다.</p>
+  <div class="tbl-wrap" id="t1wrap"></div>
+  <p class="tbl-cap" id="t1cap"></p>
+</section>
+
+<section class="block" id="robust-sec">
+  <div class="section-title">§7 + Table 6 · 강건성</div>
+  <h2>두 사건에 기대지 않았다.</h2>
+  <p>표본을 전반/후반, 1932·2009 폭락을 뺀 무폭락, 전후(1945–2005)로 쪼개도 위험관리는 모든 조각에서 샤프를 올리고 첨도를 낮췄다. 폭락 없는 표본에서도 정보비율 ≥0.60 — 결과가 두 개의 극단 사건에 의존하지 않는다는 증거.</p>
+  <div class="tbl-wrap" id="t6wrap"></div>
+  <p class="tbl-cap">Table 6 (원논문) · 모든 하위표본에서 WML* 샤프 &gt; WML 샤프, 정보비율 ≥ 0.60.</p>
+</section>
+
+<section class="block" id="figs-sec">
+  <div class="section-title">Fig 4 · Fig 5 · 나머지 그림</div>
+  <h2>재현 요청 밖의 두 그림.</h2>
+  <div class="cmp" style="grid-template-columns:1fr 1fr;">
+    <div class="card"><h4>Fig 4 · 스케일 가중치</h4><p>시간별 롱·숏 다리 투입액. 1930년대 초·2000–02·2008–09에 최저(0.13)로 떨어졌다 회복. 평균 0.90&lt;1 — "위험 큰 시기에 알아서 발을 뺀다"의 시각화. (위 스케일링 위젯이 이 그림의 인터랙티브 버전이다.)</p></div>
+    <div class="card"><h4>Fig 5 · 수익률 밀도</h4><p>WML vs WML*의 분포. WML의 두꺼운 <b>왼쪽 꼬리</b>(−10%p 이하)가 WML*에서 크게 얇아진다. 왜도 −2.47→−0.42의 분포적 그림. 한국 장기표본에서도 같은 방향(왜도 −1.16→−0.40).</p></div>
+  </div>
+</section>
+
+<section class="block" id="method-sec">
+  <div class="section-title">재현 방법론 · 한국 원천 데이터만</div>
+  <h2>어떻게 만들었나 — 재현 레시피.</h2>
+  <p>외부 팩터 파일을 쓰지 않고, 한국 개별주식 주가·시가총액·장부가에서 네 팩터(RMRF·SMB·HML·WML)와 위험관리 버전을 전부 직접 구성했다.</p>
+  <div class="steps">
+    <div class="s"><b>데이터.</b> KOSPI+KOSDAQ 전종목 일별 <b>수정주가·시가총액</b>(FnGuide, 상장폐지 포함, 1990–2026), 장부가 <b>B/M=1/PBR</b>, 상장/상폐일. survivorship-bias-free.</div>
+    <div class="s"><b>모멘텀 신호.</b> 매월 말, 각 종목의 <code>t−12 ~ t−2</code> 누적수익으로 정렬(최근 1개월 스킵 = 단기 반전 회피).</div>
+    <div class="s"><b>WML 구성.</b> 전종목 <b>10분위</b>, 최상위(승자) − 최하위(패자). 각 분위 <b>가치가중</b>, 월별 리밸런스, self-financing 롱숏.</div>
+    <div class="s"><b>실현변동성.</b> 일별 수익률로 <code>RVₜ=Σr²</code> (21일=진단용 Fig 2, 126일=6개월 예측용). look-ahead 없이 직전월까지만.</div>
+    <div class="s"><b>위험관리.</b> <code>WML*ₜ=(σ_target/σˆₜ)·WMLₜ</code>, 연 12% 목표. σˆ는 직전 6개월 실현변동성.</div>
+    <div class="s"><b>시장·규모·가치 팩터.</b> RMRF=전종목 가치가중 시장수익(RF≈0). SMB·HML=정통 FF 2×3(6포트, 6월 리밸런스, B/M 30/70·시총 중위).</div>
+    <div class="s"><b>표본.</b> 본편 <code>mom_prices</code> 1990–2026(35년) + clean <code>prices_adj</code> 2005–2025 부표본. 두 표본이 서로를 검증.</div>
+  </div>
+</section>
+
+<section class="block" id="critique-sec">
+  <div class="section-title">자기비판 · 한계</div>
+  <h2>이 재현이 조심해야 할 것들.</h2>
+  <div class="crit" id="crit"></div>
+</section>
+
+<section class="block" id="concl-sec">
+  <div class="section-title">재현 결론</div>
+  <h2>메커니즘은 약한 시장에도 전이된다.</h2>
+  <div class="cmp">
+    <div class="card"><h4><span class="flag">🇺🇸</span> 미국 (원논문)</h4><div class="big" style="color:var(--accent)">0.53 → 0.97</div><p>모멘텀이 최강 팩터. 위험관리가 샤프를 배증 + 첨도 18.24→2.68로 폭락을 사실상 제거. 최악 월 −79%→−28%.</p></div>
+    <div class="card"><h4><span class="flag">🇰🇷</span> 한국 (재현)</h4><div class="big" style="color:var(--accent)" id="krHead">0.16 → 0.31</div><p>모멘텀은 시장에 한참 못 미치는 약한 팩터(샤프 0.16 vs 시장 0.36). 그럼에도 위험관리가 샤프를 개선(IR 0.53). 장기표본에선 1998 IMF 회복기에 −94.9% 크래시가 실재 — Barroso 메커니즘이 그대로 작동.</p></div>
+  </div>
+  <blockquote>한국 모멘텀은 <b>약하지만 죽지 않았다</b>. 위험이 예측 가능하다는 사실은 시장을 가리지 않으며, 위험관리는 약한 모멘텀에서도 위험조정성과를 끌어올린다 — Barroso가 일본에서 보인 것(0.08→0.24)과 같은 결. <b>Risk-managed momentum은 원본보다 더 큰 수수께끼다</b>: 위험이 더 낮은데 성과는 더 좋다.</blockquote>
+</section>
+
+<button id="backtop" title="맨 위로" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<footer class="site-footer">
+  <div><strong>Momentum has its moments</strong> — Barroso &amp; Santa-Clara, JFE 2015 · 해체분석 &amp; 한국 재현</div>
+  <div style="margin-top:8px;">인터랙티브 차트 8종은 전부 <b>실제 재현 데이터</b>로 구동됩니다 · 졸업논문 프로젝트</div>
+</footer>
+</main>
+
+<script>
+const DATA = __DATA__;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function cum(series){let v=1;return series.map(([d,r])=>{v*=(1+r);return [d,v];});}
+function sliceByDate(series,a,b){return series.filter(([d])=>d>=a&&d<=b);}
+const NAV=[['chain-sec','논증사슬'],['concept-sec','선행개념'],['abstract-sec','초록'],['crash-sec','크래시'],['decon-sec','섹션해체'],['vol-sec','변동성·AR1'],['quint-sec','위험분위'],['rm-sec','위험관리'],['widget-sec','스케일링'],['anatomy-sec','위험해부'],['intl-sec','국제'],['table1-sec','Table1'],['robust-sec','강건성'],['method-sec','방법론'],['critique-sec','한계']];
+$('#subnav').innerHTML=NAV.map(n=>`<a href="#${n[0]}">${n[1]}</a>`).join('');
+
+/* stats */
+const STATS=[
+  {num:'0.53<span class="arrow">→</span>0.97',label:'샤프비율 (US, 위험관리로 배증)'},
+  {num:'18.24<span class="arrow">→</span>2.68',label:'초과첨도 (US, 폭락 제거)'},
+  {num:'−97<span class="arrow">→</span>−45%',label:'최대낙폭 MDD (US)'},
+  {num:'−94.9%',label:'한국 최악 월 (1998 IMF 회복기)'},
+  {num:'−1.16',label:'한국 WML 왜도 (35년 장기표본)'},
+  {num:'57.82%',label:'실현변동성 OOS R² (예측 가능)'},
+];
+$('#stats').innerHTML=STATS.map(s=>`<div class="stat reveal"><div class="num">${s.num}</div><div class="label">${s.label}</div></div>`).join('');
+
+/* chain */
+const CHAIN=[
+  ['최고의 샤프, 그러나 파국','모멘텀은 모든 팩터 중 샤프가 가장 높다(0.53). 그러나 왜도 −2.47·초과첨도 18.24 — 가끔 −79%짜리 월수익이 나온다.','§2 · Table 1 · Fig 1'],
+  ['폭락은 무작위가 아니다','모멘텀의 위험(변동성)은 3%~128%로 요동치는데, 그 변동성이 AR(1)로 OOS R²=57.82%만큼 예측된다 — 시장(38.81%)보다 더.','§3 · Eq 2·3 · Fig 2 · Table 2'],
+  ['음(−)의 위험-수익 관계','최근 변동성이 높았던 국면 다음엔 모멘텀 수익이 오히려 낮다(샤프 1.72 → 0.28).','§3 · Fig 3'],
+  ['예측된 위험으로 스케일','위험이 클수록 포지션↓ — r*ₜ = (σ목표 ÷ 예측변동성)·rₜ. 과거 정보만 쓰므로 look-ahead bias가 없다.','§4 · Eq 5·6'],
+  ['폭락이 사라진다','샤프 0.53→0.97, 첨도 18.24→2.68, 왜도 −2.47→−0.42, 최악 월 −79%→−28%, MDD −97%→−45%.','§4 · Table 3 · Fig 5·6'],
+  ['왜 베타 헤지는 실패하나','모멘텀 위험의 시장성분은 23%뿐이고 고유성분이 더 예측된다(OOS 47% vs 21%). 베타 헤지는 작고 안 예측되는 부분만 건드린다.','§5 · Eq 7 · Table 4'],
+  ['더 커진 수수께끼','국제·하위표본에서도 성립. 위험이 더 낮은데 성과는 더 좋다 → 어떤 이론으로도 설명하기 더 어려워졌다.','§6·7·8'],
+];
+$('#chain').innerHTML=CHAIN.map((s,i)=>`<div class="step reveal"><div class="n">${i+1}</div><div class="body"><h4>${s[0]}</h4><p>${s[1]}</p><span class="tag">${s[2]}</span></div></div>`).join('');
+
+/* glossary */
+
+/* abstract */
+const ABS=[
+  ['Compared with the market, value, or size factors, momentum has offered investors the highest Sharpe ratio.','비교 대상은 FF 3팩터. <b>근거는 Table 1 하나</b> — WML 샤프 0.53 &gt; RMRF 0.39 &gt; HML 0.36 &gt; SMB 0.26.'],
+  ['However, momentum has also had the worst crashes, making the strategy unappealing to investors who dislike negative skewness and kurtosis.','"worst crashes"의 계량적 정의 = <b>가장 음의 왜도(−2.47)+가장 큰 첨도(18.24)</b>. 샤프만 보면 안 보이는 위험.'],
+  ['We find that the risk of momentum is highly variable over time and predictable.','논문의 <b>두 기둥</b>: variable(Fig 2, 3~128%) + predictable(Table 2, OOS 57.82%). 둘 다 성립해야 전략이 선다.'],
+  ['Managing this risk virtually eliminates crashes and nearly doubles the Sharpe ratio of the momentum strategy.','"virtually eliminates"=첨도 18.24→2.68·왜도 −2.47→−0.42. "nearly doubles"=0.53→0.97.'],
+  ['Risk-managed momentum is a much greater puzzle than the original version.','도발적 결론. 위험이 더 낮은데 성과는 더 좋다 → 위험-보상 논리로 <b>더 설명 불가</b>. "풀었다"가 아니라 "키웠다".'],
+];
+$('#abs').innerHTML=ABS.map(a=>`<div class="row reveal"><div class="en">"${a[0]}"</div><div class="an">${a[1]}</div></div>`).join('');
+
+/* deconstruction */
+function typeset(){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise().catch(()=>{});}}
+typeset(); window.addEventListener('load',()=>setTimeout(typeset,400));
+
+/* critique */
+const CRIT=[
+  ['가치가중이 꼬리를 뭉갠다','2005+ 표본에서 WML 왜도 +0.08 — VW 대형주 지배로 월별 크래시가 사라진다. 장기(1990+)엔 왜도 −1.16으로 살아남지만, 원논문의 극단 꼬리를 완전 재현하려면 동일가중이 필요.'],
+  ['SMB·HML 장부가 커버리지','B/M=1/PBR을 FnGuide PBR(1988+)에서 구성해 SMB·HML도 RMRF·WML과 동일한 전표본(1991–2026)으로 통일. 단 초기(1990년대)엔 B/M 보유 종목이 상대적으로 적어 그 구간 팩터는 다소 얇은 유니버스에 기반.'],
+  ['무위험수익률 RF≈0','디스크에 한국 RF 시계열이 없어 RMRF=gross 시장수익. WML·SMB·HML은 self-financing이라 무관하지만 RMRF 평균·샤프는 약간 과대.'],
+  ['decile 마이크로캡 노이즈','전종목 10분위의 loser 다리에 소형·저유동 종목이 섞인다. VW가 완화하나 완전 제거는 아님. (KOSPI-only·시총필터 변형으로 강건성 확인 가능.)'],
+  ['거래비용 미반영','본 재현은 gross. 원논문은 회전율이 raw와 유사해 비용 우려가 작다고 논증하지만, 한국 공매도 제약·거래비용은 별도 검토 필요.'],
+  ['pre-2001 데이터 품질','1997–2001 소형주 극단 수익(−94.9% 월)엔 얇은 거래·수정주가 아티팩트 여지. ±50% 일별 캡으로 방어했으나 초기 구간은 보수적으로 해석.'],
+];
+$('#crit').innerHTML=CRIT.map(c=>`<div class="c reveal"><h4>${c[0]}</h4><p>${c[1]}</p></div>`).join('');
+
+/* ===== CHART ENGINE ===== */
+function setupCanvas(cv){const dpr=window.devicePixelRatio||1,r=cv.getBoundingClientRect();
+  cv.width=r.width*dpr;cv.height=r.height*dpr;const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,W:r.width,H:r.height};}
+const PAD={l:52,r:48,t:16,b:34};
+function niceTicks(min,max,n=5){const span=max-min||1,step0=span/n,mag=Math.pow(10,Math.floor(Math.log10(step0)));
+  const norm=step0/mag,step=(norm<1.5?1:norm<3?2:norm<7?5:10)*mag;const s=Math.ceil(min/step)*step,t=[];for(let v=s;v<=max+1e-9;v+=step)t.push(v);return t;}
+function yearTicks(dates){const out=[],seen=new Set();const step=dates.length>120?4:dates.length>50?2:1;
+  dates.forEach((d)=>{const y=d.slice(0,4);if(!seen.has(y)&&(+y%step===0)){seen.add(y);}});
+  dates.forEach((d,i)=>{const y=d.slice(0,4);if(seen.has(y)&&!out.find(o=>o.y===y)){out.push({i,y});}});return out;}
+function lineChart(cv,lines,opts={}){
+  const {ctx,W,H}=setupCanvas(cv);const dates=lines[0].data.map(p=>p[0]);const xmin=0,xmax=dates.length-1;
+  let ymin=opts.ymin!=null?opts.ymin:Infinity,ymax=opts.ymax!=null?opts.ymax:-Infinity;
+  if(opts.ymin==null||opts.ymax==null)lines.forEach(l=>l.data.forEach(p=>{ymin=Math.min(ymin,p[1]);ymax=Math.max(ymax,p[1]);}));
+  const padY=(ymax-ymin)*0.08;if(opts.ymin==null)ymin-=padY;if(opts.ymax==null)ymax+=padY;
+  const gx=v=>PAD.l+(v-xmin)/(xmax-xmin)*(W-PAD.l-PAD.r);const gy=v=>H-PAD.b-(v-ymin)/(ymax-ymin)*(H-PAD.t-PAD.b);
+  ctx.font='10px "JetBrains Mono",monospace';ctx.strokeStyle=css('--border-light');ctx.lineWidth=1;
+  niceTicks(ymin,ymax,5).forEach(v=>{const y=gy(v);ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();
+    ctx.fillStyle=css('--text-muted');ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText((opts.fmtY||(x=>x.toFixed(1)))(v),PAD.l-8,y);});
+  yearTicks(dates).forEach(({i,y})=>{const x=gx(i);ctx.fillStyle=css('--text-muted');ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(y,x,H-PAD.b+7);});
+  if(opts.baseline!=null){const y=gy(opts.baseline);ctx.strokeStyle=css('--text-light');ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();ctx.setLineDash([]);}
+  (opts.events||[]).forEach(([em,lbl])=>{const i=dates.findIndex(d=>d>=em);if(i<0)return;
+    const mo=s=>(+s.slice(0,4))*12+(+s.slice(5,7));if(mo(dates[i])-mo(em)>3)return; // event outside window
+    const x=gx(i);
+    ctx.strokeStyle=css('--text-light');ctx.setLineDash([2,4]);ctx.beginPath();ctx.moveTo(x,PAD.t+12);ctx.lineTo(x,H-PAD.b);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=css('--text-muted');ctx.font='600 9px "Space Grotesk",sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(lbl,x,PAD.t+10);});
+  lines.forEach(l=>{if(l.fill){ctx.beginPath();l.data.forEach((p,i)=>{const x=gx(i),y=gy(p[1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+      ctx.lineTo(gx(l.data.length-1),gy(ymin));ctx.lineTo(gx(0),gy(ymin));ctx.closePath();ctx.fillStyle=l.fill;ctx.fill();}
+    ctx.strokeStyle=l.color;ctx.lineWidth=l.w||1.8;ctx.setLineDash(l.dash||[]);ctx.beginPath();
+    l.data.forEach((p,i)=>{const x=gx(i),y=gy(p[1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);
+    if(opts.endLabel){const last=l.data[l.data.length-1];ctx.fillStyle=l.color;ctx.font='600 11px "JetBrains Mono"';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(opts.endLabel(last[1]),gx(l.data.length-1)+4,gy(last[1]));}});
+  cv._hit={gx,gy,dates,lines,W,fmt:opts.fmtHover||opts.fmtY};
+}
+function attachHover(cv,tt){cv._tt=tt;
+  const show=(clientX)=>{const h=cv._hit;if(!h)return;const r=cv.getBoundingClientRect();const mx=clientX-r.left;
+    let html,lx,ly;
+    if(h.type==='bar'){
+      const i=Math.floor((mx-PAD.l)/h.bw);if(i<0||i>=h.groups.length){tt.style.opacity=0;return;}
+      const g=h.groups[i];
+      html=`${h.xlabel?h.xlabel(g,i):('Q'+g.q)}<br>`+h.seriesDefs.map(s=>`${s.name||s.key}: ${(h.fmt||(v=>(+v).toFixed(2)))(g[s.key])}`).join('<br>');
+      lx=PAD.l+h.bw*i+h.bw/2; ly=PAD.t+30;
+    }else{
+      const idx=Math.round((mx-PAD.l)/(h.W-PAD.l-PAD.r)*(h.dates.length-1));if(idx<0||idx>=h.dates.length){tt.style.opacity=0;return;}
+      html=`${h.dates[idx]}<br>`+h.lines.map(l=>`${l.name}: ${(h.fmt||(v=>v.toFixed(2)))(l.data[idx][1])}`).join('<br>');
+      lx=h.gx(idx); ly=h.gy(Math.max(...h.lines.map(l=>l.data[idx][1])));
+    }
+    tt.innerHTML=html;
+    // edge clamp so the tooltip never overflows the frame
+    const half=Math.min(110,(tt.offsetWidth||120)/2+8);
+    tt.style.left=Math.max(PAD.l+half,Math.min((cv._hit.W||cv.getBoundingClientRect().width)-half,lx))+'px';
+    tt.style.top=Math.max(34,ly)+'px';tt.style.opacity=1;};
+  cv.addEventListener('pointermove',e=>show(e.clientX));
+  cv.addEventListener('pointerdown',e=>show(e.clientX));
+  cv.addEventListener('touchmove',e=>{if(e.touches[0])show(e.touches[0].clientX);},{passive:true});
+  cv.addEventListener('pointerleave',()=>{tt.style.opacity=0;});}
+function barChart(cv,groups,seriesDefs,opts={}){
+  const {ctx,W,H}=setupCanvas(cv);let ymin=0,ymax=-Infinity;groups.forEach(g=>seriesDefs.forEach(s=>{ymin=Math.min(ymin,g[s.key]);ymax=Math.max(ymax,g[s.key]);}));
+  const padY=(ymax-ymin)*0.14;ymax+=padY;if(ymin<0)ymin-=padY;
+  const gy=v=>H-PAD.b-(v-ymin)/(ymax-ymin)*(H-PAD.t-PAD.b);
+  ctx.font='10px "JetBrains Mono"';ctx.strokeStyle=css('--border-light');
+  niceTicks(ymin,ymax,5).forEach(v=>{const y=gy(v);ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();
+    ctx.fillStyle=css('--text-muted');ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(opts.fmtY?opts.fmtY(v):v.toFixed(1),PAD.l-8,y);});
+  const bw=(W-PAD.l-PAD.r)/groups.length,ib=Math.min(bw*0.30,32),gap=6;
+  groups.forEach((g,i)=>{const cx=PAD.l+bw*i+bw/2;seriesDefs.forEach((s,j)=>{const x=cx+(j-(seriesDefs.length-1)/2)*(ib+gap)-ib/2;
+      const v=g[s.key],y=gy(v),y0=gy(0);ctx.fillStyle=s.color;ctx.fillRect(x,Math.min(y,y0),ib,Math.abs(y-y0));
+      // value label just beyond the bar tip (above for +, below for −)
+      ctx.fillStyle=css('--text-muted');ctx.font='9px "JetBrains Mono"';ctx.textAlign='center';
+      ctx.textBaseline=v>=0?'bottom':'top';ctx.fillText(opts.fmtY?opts.fmtY(v):(+v).toFixed(1),x+ib/2,v>=0?y-3:y+3);
+      ctx.font='10px "JetBrains Mono"';});
+    ctx.fillStyle=css('--text-muted');ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(opts.xlabel?opts.xlabel(g,i):('Q'+g.q),cx,H-PAD.b+7);});
+  const y0=gy(0);ctx.strokeStyle=css('--text-light');ctx.beginPath();ctx.moveTo(PAD.l,y0);ctx.lineTo(W-PAD.r,y0);ctx.stroke();
+  cv._hit={type:'bar',groups,seriesDefs,bw,W,xlabel:opts.xlabel,fmt:opts.fmtY};
+}
+function scatterChart(cv,pts,opts={}){
+  const {ctx,W,H}=setupCanvas(cv);let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity;
+  pts.forEach(p=>{xmin=Math.min(xmin,p[0]);xmax=Math.max(xmax,p[0]);ymin=Math.min(ymin,p[1]);ymax=Math.max(ymax,p[1]);});
+  xmin=0;ymin=0;xmax*=1.05;ymax*=1.05;
+  const gx=v=>PAD.l+(v-xmin)/(xmax-xmin)*(W-PAD.l-PAD.r),gy=v=>H-PAD.b-(v-ymin)/(ymax-ymin)*(H-PAD.t-PAD.b);
+  ctx.font='10px "JetBrains Mono"';ctx.strokeStyle=css('--border-light');
+  niceTicks(ymin,ymax,5).forEach(v=>{const y=gy(v);ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();
+    ctx.fillStyle=css('--text-muted');ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(v.toFixed(0)+'%',PAD.l-8,y);});
+  niceTicks(xmin,xmax,5).forEach(v=>{const x=gx(v);ctx.fillStyle=css('--text-muted');ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(v.toFixed(0)+'%',x,H-PAD.b+7);});
+  // regression
+  const n=pts.length,mx=pts.reduce((a,p)=>a+p[0],0)/n,my=pts.reduce((a,p)=>a+p[1],0)/n;
+  let sxy=0,sxx=0;pts.forEach(p=>{sxy+=(p[0]-mx)*(p[1]-my);sxx+=(p[0]-mx)**2;});const b=sxy/sxx,a=my-b*mx;
+  ctx.fillStyle=opts.dot||css('--accent-soft');pts.forEach(p=>{ctx.beginPath();ctx.arc(gx(p[0]),gy(p[1]),2.4,0,7);ctx.fill();});
+  ctx.strokeStyle=css('--accent');ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(gx(xmin),gy(a+b*xmin));ctx.lineTo(gx(xmax),gy(a+b*xmax));ctx.stroke();
+  ctx.fillStyle=css('--accent');ctx.font='600 12px "JetBrains Mono"';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText('slope ρ ≈ '+b.toFixed(2),W-PAD.r-4,PAD.t+16);
+  return b;
+}
+function legendHTML(el,items){el.innerHTML=items.map(i=>`<span class="li"><span class="sw" style="background:${i.color};${i.dash?'background:repeating-linear-gradient(90deg,'+i.color+' 0 4px,transparent 4px 7px);':''}"></span>${i.name}</span>`).join('');}
+function stat(series){const r=series.map(p=>p[1]).filter(v=>v!=null&&isFinite(v));const n=r.length;const mu=r.reduce((a,b)=>a+b,0)/n;
+  const sd=Math.sqrt(r.reduce((a,b)=>a+(b-mu)**2,0)/(n-1));let c=1,mdd=0,peak=1;r.forEach(x=>{c*=(1+x);peak=Math.max(peak,c);mdd=Math.min(mdd,c/peak-1);});
+  return {mean:mu*12*100,vol:sd*Math.sqrt(12)*100,sharpe:Math.sqrt(12)*mu/sd,mdd:mdd*100};}
+
+/* ===== VIZ 1 crashes ===== */
+const EVENTS=[['1997-11','IMF'],['2000-04','닷컴붕괴'],['2008-09','GFC'],['2009-04','모멘텀 크래시'],['2020-03','COVID']];
+const CRASH_PERIODS={main:[['1997-01','2002-12','IMF·닷컴 1997–2002'],['2007-01','2012-12','글로벌 금융위기 2007–2012']],
+  clean:[['2007-01','2012-12','GFC 2007–2012'],['2017-01','2023-12','코로나기 2017–2023']]};
+let c1s={panel:'main',pi:0};
+function renderC1(){const P=CRASH_PERIODS[c1s.panel][c1s.pi],d=DATA[c1s.panel];
+  const wml=cum(sliceByDate(d.wml,P[0],P[1])),rmrf=cum(sliceByDate(d.rmrf,P[0],P[1]));const cv=$('#c1');
+  const lines=[{name:'RMRF 시장',data:rmrf,color:css('--blue'),w:1.9},{name:'WML 모멘텀',data:wml,color:css('--red'),w:1.9,dash:[6,4]}];
+  lineChart(cv,lines,{baseline:1,fmtY:v=>'$'+v.toFixed(2),fmtHover:v=>'$'+v.toFixed(2),endLabel:v=>'$'+v.toFixed(2),events:EVENTS});attachHover(cv,$('#tt1'));legendHTML($('#lg1'),lines);
+  $('#note1').innerHTML=`<b>${P[2]}</b> · 시작 $1 → 종점 WML <b>$${wml.at(-1)[1].toFixed(2)}</b>, 시장 <b>$${rmrf.at(-1)[1].toFixed(2)}</b>. `+
+    (c1s.panel==='main'&&c1s.pi===0?'1998 IMF 회복 랠리에서 패자(폭락했던 소형주)가 한 달에 2배 이상 튀며 모멘텀이 붕괴 — 미국 1932의 한국판.':
+     c1s.panel==='main'?'2009년 시장 반등에서 모멘텀이 시장을 하회 — 전형적 크래시 구조.':
+     c1s.pi===0?'2008 위기 후 2009 반등 구간에서 모멘텀이 급락.':'2018–2020 모멘텀 장기 부진 + 코로나 반등.');}
+function buildC1(){const seg=$('#c1period');const o=[['main·IMF','main',0],['main·GFC','main',1],['clean·GFC','clean',0],['clean·코로나','clean',1]];
+  seg.innerHTML=o.map((x,i)=>`<button class="${i===0?'on':''}">${x[0]}</button>`).join('');
+  seg.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');c1s.panel=o[i][1];c1s.pi=o[i][2];renderC1();});}
+
+/* ===== VIZ 2 realized vol + AR1 ===== */
+function renderC2(){const d=DATA.main.rv.map(p=>[p[0],p[1]]);const cv=$('#c2');
+  lineChart(cv,[{name:'실현변동성',data:d,color:css('--accent'),w:1.2,fill:'color-mix(in srgb,'+css('--accent')+' 12%,transparent)'}],{ymin:0,fmtY:v=>v.toFixed(0)+'%',fmtHover:v=>v.toFixed(1)+'%',events:EVENTS});
+  attachHover(cv,$('#tt2'));const vals=d.map(p=>p[1]);$('#note2').innerHTML=`최소 <b>${Math.min(...vals).toFixed(1)}%</b> ~ 최대 <b>${Math.max(...vals).toFixed(1)}%</b>. 스파이크: 1998 IMF · 2008 GFC · 2020 코로나.`;}
+function renderC2b(){const rv=DATA.main.rv;const pts=[];for(let i=1;i<rv.length;i++){if(rv[i][1]!=null&&rv[i-1][1]!=null)pts.push([rv[i-1][1],rv[i][1]]);}
+  const rho=scatterChart($('#c2b'),pts);$('#note2b').innerHTML=`가로=지난달 변동성, 세로=이번달 변동성. 우상향 기울기 <b>ρ≈${rho.toFixed(2)}</b> — 위험이 끈질기게 이어진다(persistence). 이게 예측을 가능케 한다.`;}
+
+/* ===== VIZ 3 quintiles ===== */
+let c3m='sharpe';
+function renderC3(){const qw=DATA.clean.quint_wml,qr=DATA.clean.quint_rmrf;
+  const g=[1,2,3,4,5].map(q=>({q,wml:(qw.find(x=>x.q===q)||{})[c3m],rmrf:(qr.find(x=>x.q===q)||{})[c3m]}));
+  barChart($('#c3'),g,[{key:'wml',name:'WML 모멘텀',color:css('--red')},{key:'rmrf',name:'RMRF 시장',color:css('--blue')}],{fmtY:v=>c3m==='sharpe'?v.toFixed(2):v.toFixed(0)+'%'});
+  attachHover($('#c3'),$('#tt3'));
+  legendHTML($('#lg3'),[{name:'WML 모멘텀',color:css('--red')},{name:'RMRF 시장',color:css('--blue')}]);
+  const nm={sharpe:'샤프비율',ret:'연 수익률(%)',vol:'실현변동성(%)'};const q5=(qw.find(x=>x.q===5)||{})[c3m],q1=(qw.find(x=>x.q===1)||{})[c3m];
+  $('#note3').innerHTML=`<b>${nm[c3m]}</b> · <span style="color:var(--red)">빨강=WML 모멘텀</span>, <span style="color:var(--blue)">파랑=RMRF 시장</span> · <span style="color:var(--text-light)">clean 2005+ 표본</span>. `+
+    (c3m==='sharpe'?`모멘텀 샤프: Q1 <b>${q1?.toFixed(2)}</b> → Q5 <b>${q5?.toFixed(2)}</b> (고변동성 국면 뒤 음전환). 시장은 반대로 Q5에서 최고.`:
+     c3m==='ret'?'모멘텀은 고변동성 국면(Q4·Q5) 뒤 수익이 음(−)으로 꺾인다.':'두 팩터 모두 직전 위험이 높으면 미래 위험도 높다(예측성).');}
+function buildC3(){const seg=$('#c3metric');const o=[['샤프','sharpe'],['수익률','ret'],['변동성','vol']];
+  seg.innerHTML=o.map(x=>`<button class="${x[1]===c3m?'on':''}">${x[0]}</button>`).join('');
+  seg.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');c3m=o[i][1];renderC3();});}
+
+/* ===== VIZ 4 risk managed ===== */
+let c4={panel:'main',pi:0};
+function renderC4(){const P=CRASH_PERIODS[c4.panel][c4.pi],d=DATA[c4.panel];
+  const wml=cum(sliceByDate(d.wml,P[0],P[1])),ws=cum(sliceByDate(d.wml_star,P[0],P[1]));const cv=$('#c4');
+  const lines=[{name:'WML 원본',data:wml,color:css('--red'),w:1.9},{name:'WML* 위험관리',data:ws,color:css('--gold'),w:1.9,dash:[6,4]}];
+  lineChart(cv,lines,{baseline:1,fmtY:v=>'$'+v.toFixed(2),fmtHover:v=>'$'+v.toFixed(2),endLabel:v=>'$'+v.toFixed(2),events:EVENTS});attachHover(cv,$('#tt4'));legendHTML($('#lg4'),lines);
+  renderT3(d.table3);$('#note4').innerHTML=`<b>${P[2]}</b> · WML* 종점 <b>$${ws.at(-1)[1].toFixed(2)}</b> vs WML <b>$${wml.at(-1)[1].toFixed(2)}</b>. 위기 구간에서 위험관리가 낙폭을 줄인다.`;}
+function renderT3(t3){const rows=[['WML',t3.WML,''],['WML*',t3.WMLs,'hl']];
+  const cols=[['최대','mx',1],['최소','mn',1],['평균(연,%)','mean',2],['표준편차','std',2],['왜도','skew',2],['첨도','kurt',2],['샤프','sharpe',3],['정보비율','ir',2]];
+  let h='<table class="data"><thead><tr><th>포트폴리오</th>'+cols.map(c=>`<th>${c[0]}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach(([nm,o,cl])=>{h+=`<tr class="${cl}"><td>${nm}</td>`+cols.map(c=>{let v=o[c[1]];return `<td>${v==null?'—':(+v).toFixed(c[2])}</td>`;}).join('')+'</tr>';});
+  $('#t3wrap').innerHTML=h+'</tbody></table>';}
+function buildC4(){const ss=$('#c4sample');ss.innerHTML=`<button class="on">main 1990+</button><button>clean 2005+</button>`;const ps=$('#c4period');
+  function fp(){ps.innerHTML=CRASH_PERIODS[c4.panel].map((p,i)=>`<button class="${i===c4.pi?'on':''}">${p[2].split(' ')[0]}</button>`).join('');
+    ps.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{c4.pi=i;fp();renderC4();});}
+  ss.querySelectorAll('button').forEach((b,i)=>b.onclick=()=>{ss.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');c4.panel=i===0?'main':'clean';c4.pi=0;fp();renderC4();});fp();}
+
+/* ===== VIZ 5 scaling widget ===== */
+function renderWidget(){const tgt=+$('#tgt').value;$('#tgtVal').textContent=tgt+'%';const tm=tgt/100/Math.sqrt(12);
+  const d=DATA.main;const shMap=Object.fromEntries(d.sigma_hat);const wmap=Object.fromEntries(d.wml);
+  const lev=[],wstar=[];d.sigma_hat.forEach(([m,sh])=>{if(sh&&wmap[m]!=null){const L=tm/sh;lev.push([m,L]);wstar.push([m,L*wmap[m]]);}});
+  const s=stat(wstar);
+  $('#wro').innerHTML=[['연변동성',s.vol.toFixed(1)+'%'],['샤프',s.sharpe.toFixed(2)],['최대낙폭',s.mdd.toFixed(0)+'%'],['평균레버리지',(lev.reduce((a,b)=>a+b[1],0)/lev.length).toFixed(2)]]
+    .map(r=>`<div class="r"><div class="rv">${r[1]}</div><div class="rl">${r[0]}</div></div>`).join('');
+  lineChart($('#c5'),[{name:'레버리지',data:lev,color:css('--accent'),w:1.3,fill:'color-mix(in srgb,'+css('--accent')+' 10%,transparent)'}],{ymin:0,baseline:1,fmtY:v=>v.toFixed(1)+'×',fmtHover:v=>v.toFixed(2)+'×'});
+  attachHover($('#c5'),$('#tt5'));}
+
+/* ===== VIZ 6 decomposition ===== */
+function renderC6(){const d=DATA.main.decomp.map(x=>[x[0],x[1]*100]);const cv=$('#c6');
+  lineChart(cv,[{name:'시장성분 비중',data:d,color:css('--blue'),w:1.3,fill:'color-mix(in srgb,'+css('--blue')+' 12%,transparent)'}],{ymin:0,ymax:100,baseline:DATA.main.decomp_mean_frac*100,fmtY:v=>v.toFixed(0)+'%',fmtHover:v=>v.toFixed(0)+'%',events:EVENTS});
+  attachHover(cv,$('#tt6'));$('#decMean').textContent=(DATA.main.decomp_mean_frac*100).toFixed(0)+'%';
+  $('#note6').innerHTML=`모멘텀 분산 중 시장(β²·RV_market)이 차지하는 몫. 회색 점선=평균 <b>${(DATA.main.decomp_mean_frac*100).toFixed(0)}%</b>. 나머지 ~90%는 고유위험 — 베타 헤지로는 손대지 못하는 부분.`;}
+
+/* ===== VIZ 7 international ===== */
+function renderC7(){const kr=DATA.clean.table3;
+  const g=[{c:'프랑스',wml:0.67,ws:1.03},{c:'독일',wml:1.02,ws:1.39},{c:'일본',wml:0.08,ws:0.24},{c:'영국',wml:1.09,ws:1.77},{c:'한국',wml:+kr.WML.sharpe.toFixed(2),ws:+kr.WMLs.sharpe.toFixed(2)}];
+  barChart($('#c7'),g,[{key:'wml',name:'WML 원본',color:css('--red')},{key:'ws',name:'WML* 위험관리',color:css('--gold')}],{fmtY:v=>v.toFixed(2),xlabel:x=>x.c});
+  attachHover($('#c7'),$('#tt7'));
+  legendHTML($('#lg7'),[{name:'WML 원본',color:css('--red')},{name:'WML* 위험관리',color:css('--gold')}]);}
+
+/* ===== TABLES 1,2,4,6 ===== */
+function renderT1(){const kr=DATA.table1,us=DATA.us.table1,facs=['RMRF','SMB','HML','WML'];
+  const cols=[['최대','mx',1],['최소','mn',1],['평균(연,%)','mean',2],['표준편차','std',2],['첨도','kurt',2],['왜도','skew',2],['샤프','sharpe',2]];
+  let h='<table class="data"><thead><tr><th>팩터</th>'+cols.map(c=>`<th>${c[0]}</th>`).join('')+'</tr></thead><tbody>';
+  h+=`<tr class="grp"><td colspan="${cols.length+1}">🇺🇸 미국 (Barroso, 1927–2011)</td></tr>`;
+  facs.forEach(f=>{const o=us[f];h+=`<tr class="${f==='WML'?'hl':''}"><td>${f}</td>`+cols.map(c=>`<td>${(+o[c[1]]).toFixed(c[2])}</td>`).join('')+'</tr>';});
+  h+=`<tr class="grp"><td colspan="${cols.length+1}">🇰🇷 한국 (재현, 원천 데이터)</td></tr>`;
+  facs.forEach(f=>{const o=kr[f];h+=`<tr class="${f==='WML'?'hl':''}"><td>${f} <span style="color:var(--text-light);font-family:var(--font-mono);font-size:.68rem;">${o.range}</span></td>`+cols.map(c=>`<td>${(+o[c[1]]).toFixed(c[2])}</td>`).join('')+'</tr>';});
+  $('#t1wrap').innerHTML=h+'</tbody></table>';
+  $('#t1cap').innerHTML=`월별 수익률. 평균·표준편차·샤프는 연율화. 한국 네 팩터 모두 한국 원천 주가/장부가에서 직접 구성(외부 FF 파일 미사용, RF≈0, FnGuide PBR로 B/M). <b>핵심: 미국은 WML 샤프가 최고(0.53, 모든 팩터를 이김)인데, 한국은 WML(0.16)이 시장(0.36)의 절반 이하로 '최고 팩터'의 지위를 잃는다.</b>`;
+  $('#krHead').textContent=`${DATA.clean.table3.WML.sharpe.toFixed(2)} → ${DATA.clean.table3.WMLs.sharpe.toFixed(2)}`;}
+function simpleTable(el,head,rows,hlRow){let h='<table class="data"><thead><tr>'+head.map(x=>`<th>${x}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach((r,i)=>{h+=`<tr class="${i===hlRow?'hl':''}">`+r.map((c,j)=>`<td${j===0?' style="text-align:left"':''}>${c}</td>`).join('')+'</tr>';});$(el).innerHTML=h+'</tbody></table>';}
+function renderT2(){simpleTable('#t2wrap',['','α','ρ','R²','OOS R²','평균RV','RV의σ'],
+  [['RMRF','0.0010','0.60','36.03','38.81','14.34','9.97'],['WML','0.0012','0.70','49.10','57.82','17.29','13.64'],
+   ['SMB','0.0004','0.33','10.68','−8.41','7.36','3.87'],['HML','0.0001','0.73','53.55','53.37','6.68','4.29']],1);}
+function renderT4(){simpleTable('#t4wrap',['성분','α','ρ','R²','OOS R²'],
+  [['σ²_wml (총)','0.0012','0.70','48.67','43.82'],['σ²_rmrf (시장분산)','0.0012','0.50','24.53','6.70'],
+   ['β²','0.3544','0.21','4.59','5.33'],['β²·σ²_rmrf (시장성분)','0.0007','0.47','21.67','20.87'],
+   ['σ²_e (고유성분)','0.0007','0.72','52.21','47.06']],4);}
+function renderT6(){simpleTable('#t6wrap',['하위표본','WML 샤프','WML* 샤프','정보비율'],
+  [['전반 1927–69','0.45','0.86','0.73'],['후반 1970–2011','0.62','1.09','0.81'],['무폭락(1932·2009 제외)','0.73','1.04','0.60'],['전후 1945–2005','0.86','1.16','0.64']],-1);}
+
+/* init */
+function renderAll(){[renderC1,renderC2,renderC2b,renderC3,renderC4,renderWidget,renderC6,renderC7,renderT1,renderT2,renderT4,renderT6].forEach(f=>{try{f();}catch(e){console.error('render fail:',f.name,e);}});}
+buildC1();buildC3();buildC4();$('#tgt').addEventListener('input',renderWidget);renderAll();
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(renderAll,150);});
+
+/* theme */
+const themeBtn=$('#themeBtn');
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('deep-theme',t);
+  document.querySelector('meta[name=theme-color]').setAttribute('content',t==='dark'?'#161311':'#faf7f2');setTimeout(renderAll,60);}
+themeBtn.onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+setTheme(localStorage.getItem('deep-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
+
+/* progress + reveal + nav active */
+const prog=$('#progress');const secs=NAV.map(n=>document.getElementById(n[0]));
+let _act=-1;
+window.addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  let act=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<160)act=i;});
+  if(act!==_act){_act=act;
+    const links=$$('.subnav a');links.forEach((a,i)=>a.classList.toggle('active',i===act));
+    const nav=document.querySelector('.subnav'),a=links[act];
+    if(nav&&a)nav.scrollLeft=a.offsetLeft-nav.clientWidth/2+a.offsetWidth/2;}
+  const btt=$('#backtop');if(btt)btt.classList.toggle('show',h.scrollTop>900);});
+/* deep links & in-page anchors: auto-open enclosing <details> so the target is visible */
+function openHashTarget(){const id=decodeURIComponent(location.hash.slice(1));if(!id)return;
+  const el=document.getElementById(id);if(!el)return;
+  for(let n=el;n;n=n.parentElement){if(n.tagName==='DETAILS')n.open=true;}
+  setTimeout(()=>el.scrollIntoView({block:'start'}),50);}
+window.addEventListener('hashchange',openHashTarget);openHashTarget();
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.1});
+$$('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

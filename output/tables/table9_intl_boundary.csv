@@ -1,0 +1,9 @@
+series,construction,n_oos,ens_dES5,ens_p,harx_dES5,harx_p,source_csv,ledger
+Korea,decile10,292,0.86,0.037,1.34,0.003,fair_cross.csv,E21
+Korea,2x3,291,0.29,0.325,0.24,0.339,p22_kr_2x3.csv,E22
+US,decile10,1063,-0.13,0.67,-0.21,0.75,us_leaderboard.csv(ES5 diff)+E19(p),E19
+US,smallcap_ME1_quintile,1063,0.18,0.202,0.07,0.370,p23_us_smallcap.csv,E23
+Japan,2x3,295,-0.53,0.810,-0.33,0.707,fair_cross.csv,E21
+Europe,2x3,295,-0.19,0.639,-0.12,0.661,fair_cross.csv,E21
+NorthAmerica,2x3,295,-0.16,0.715,-0.69,0.978,fair_cross.csv,E21
+AsiaPacxJP,2x3,295,-0.82,0.970,-0.55,0.939,fair_cross.csv,E21

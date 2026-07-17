@@ -1,0 +1,4 @@
+# 데이터 지문 (SHA256) — 논문 v3.3 기준. 이 파일은 수정하지 마세요.
+mom_prices.parquet	12e77fa3b55448d1e086580a671a721f70bccf81a6b4fbfcdcb1be9bc2ca2a95
+pbr_monthly.parquet	8eb1cdb8d4ccea6f4a4b7da41ee06df17cf8663a56a9b98d6433a96d643c5e4e
+rf_monthly.csv	642c069d05235c887fd91d1dc6cf26ca18d08e0529a04a5dd64e337cab3bb715

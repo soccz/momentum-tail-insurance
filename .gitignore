@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+# 벤더(FnGuide) 파생 데이터는 재배포 금지 — rf_monthly.csv(공개 출처)만 예외
+data/processed/*
+!data/processed/rf_monthly.csv
