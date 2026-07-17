@@ -12,9 +12,11 @@
 [![Experiments](https://img.shields.io/badge/실험_원장-E00–E38-b45309.svg)](docs/05_results_ledger.md)
 [![Claims](https://img.shields.io/badge/주장–근거_지도-C1–C42-15803d.svg)](docs/06_claims_map.md)
 [![Verified](https://img.shields.io/badge/수치_전수대조-불일치_0건-15803d.svg)](output/tables/)
+[![headline gates](https://img.shields.io/badge/headline_gates-11%2F11_PASS-15803d.svg)](tests/verify_headline_numbers.py)
 
 **[🧭 연구 여정 — 성공·실패·철회 전체 기록](https://soccz.github.io/projects/momentum-journey/)** ·
-**[🎛️ 원논문(BS15) 재현 인터랙티브 데모](https://soccz.github.io/projects/momentum-barroso/)**
+**[🎛️ 원논문(BS15) 재현 인터랙티브 데모](https://soccz.github.io/projects/momentum-barroso/)** ·
+**[🇬🇧 English](README.en.md)**
 
 </div>
 
@@ -86,7 +88,8 @@ reproduce/                      초간단 재현 킷 — SHA256 매니페스트 
 output/tables/  (74 CSV)        논문 모든 표의 정본 — 본문 수치는 전부 여기로 소급
 output/figures/                 논문 그림
 data/us/ · data/intl/           Ken French 공개 데이터 파생 시계열 (완전 재현 가능)
-data/processed/rf_monthly.csv   무위험수익률 (한국은행 콜금리, FRED IRSTCI01KRM156N로 키 없이 재현)
+data/processed/                 팩터 수준 파생 시계열 (WML·팩터·ML 피처·예측치 — 종목 수준 아님) + 무위험수익률
+tests/verify_headline_numbers.py  ★ 헤드라인 수치 게이트 11건 (누구나 1초 재실행 가능)
 ```
 
 ## 빠른 시작
@@ -101,19 +104,25 @@ python reproduce/step0_check_data.py
 #    ※ FnGuide 원시 패널 필요 (아래 데이터 정책 참조)
 python reproduce/step1_reproduce.py
 
-# ③ 이 저장소만으로 완전 재현 가능한 부분 — 국제 병렬 (Ken French 공개 데이터)
-python code/p29_intl_forecast_quality.py     # 국제 6계열 예측 품질 + ΔES5 재현 게이트
-python code/p30_kr_us_difference.py          # 한국−미국 꼬리 증분 차이 검정
+# ③ 논문 헤드라인 수치 게이트 — 핵심 주장 11건이 정본 CSV에서 재현되는지 (CI 대기: tests/ci-verify.yml.pending)
+python tests/verify_headline_numbers.py
+
+# ④ 분석 파이프라인 재실행 — 팩터 수준 파생 시계열(data/processed/)이 포함되어
+#    예측 경기(p2)부터 최종 검정(p30)까지 이 저장소만으로 재현 가능
+python code/p2_forecast_race.py              # 12개 예측기 리더보드
+python code/p30_kr_us_difference.py          # 한국−미국 꼬리 증분 차이 검정 (FF 라이브 취득)
 ```
 
 모든 `p*.py`는 seed=42 고정이며 완료 시 자체 검증 게이트(기존 정본 CSV 재현 여부)를 출력한다.
-경로는 원 프로젝트 기준 절대경로(`/mnt/20t/졸업논문`)로 하드코딩되어 있다 — 재실행 시 `ROOT` 한 줄만 수정.
+경로는 원 프로젝트 기준 절대경로(`/mnt/20t/졸업논문`)로 하드코딩되어 있다 — 재실행 시 각 스크립트의 `ROOT` 한 줄만 수정.
+**종목 수준 원시 데이터가 필요한 것은 `build_*.py`(팩터 구축)와 `reproduce/step1`뿐**이다 (아래 데이터 정책).
 
 ## 데이터 정책
 
 | 데이터 | 출처 | 이 저장소 | 비고 |
 |---|---|---|---|
-| 한국 주가·시가총액·PBR | FnGuide DataGuide (구독) | ❌ 미포함 | 라이선스상 재배포 불가 — [`reproduce/DATA_MANIFEST.txt`](reproduce/DATA_MANIFEST.txt)의 SHA256으로 동일성 검증 |
+| 한국 주가·시가총액·PBR (종목 수준) | FnGuide DataGuide (구독) | ❌ 미포함 | 라이선스상 재배포 불가 — [`reproduce/DATA_MANIFEST.txt`](reproduce/DATA_MANIFEST.txt)의 SHA256으로 동일성 검증 |
+| 팩터 수준 파생 시계열 (WML·SMB·HML·피처·예측치) | 위 데이터의 집계 변형치 | ✅ 포함 | 종목 수준 아님 — KF가 CRSP 파생 팩터를 공개하는 것과 같은 관행 ([상세](data/README.md)) |
 | 무위험수익률 (콜금리) | 한국은행 / FRED | ✅ 포함 | `step0`이 FRED에서 라이브 재다운로드해 대조 |
 | 미국·국제 모멘텀/팩터 | Kenneth R. French Data Library | ✅ 포함 | 공개 데이터 — 국제 병렬 전체가 이 저장소만으로 재현됨 |
 | 논문 전문 (한국어 v4.2) | — | ⏳ 심사 후 공개 | 그 전까지 모든 정량 주장은 [주장지도](docs/06_claims_map.md)와 [정본 CSV](output/tables/)로 검증 가능 |
