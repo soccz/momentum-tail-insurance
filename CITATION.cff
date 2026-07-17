@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "이 저장소를 인용할 때는 아래 정보를 사용해 주세요. (논문 전문은 학위 심사 후 공개 예정)"
+title: "Momentum Tail Insurance: What Improves When Risk Forecasts Improve"
+authors:
+  - family-names: "soccz"
+type: software
+repository-code: "https://github.com/soccz/momentum-tail-insurance"
+url: "https://soccz.github.io/projects/momentum-journey/"
+keywords:
+  - momentum
+  - volatility-managed portfolios
+  - machine learning
+  - realized volatility
+  - tail risk
+  - Korean stock market
+license: MIT
